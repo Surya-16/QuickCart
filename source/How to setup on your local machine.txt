@@ -1,0 +1,25 @@
+for backend
+
+change db creadential in application.properties file
+
+=> username
+
+=> password
+
+=> and create database
+
+=> change razorpay api & secret
+
+=> give your gmail and app password
+
+now after making all above changes in application.property file you can run backend (spring boot)
+
+for frontend 
+=> do npm i
+=> npm run dev 
+
+backend
+mvn.cmd spring-boot:start
+
+
+then signup

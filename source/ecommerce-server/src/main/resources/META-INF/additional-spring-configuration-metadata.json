@@ -1,0 +1,9 @@
+{"properties": [{
+  "name": "razorpay.api.key",
+  "type": "java.lang.String",
+  "description": "The API key for Razorpay. Set up your environment variables with a valid Razorpay test credential: RAZORPAY_API_KEY=your_actual_test_key"
+}, {
+  "name": "razorpay.api.secret",
+  "type": "java.lang.String",
+  "description": "The API secret for Razorpay. Set up your environment variables with a valid Razorpay test credential: RAZORPAY_API_SECRET=your_actual_test_secret"
+}]}
