@@ -75,29 +75,32 @@ export const getOrderById = (orderId) => async (dispatch) => {
   }
 };
 
-export const getOrderHistory = (reqData) => async (dispatch, getState) => {
+export const getOrderHistory = (reqData) => async (dispatch) => {
   try {
     dispatch({ type: GET_ORDER_HISTORY_REQUEST });
-
-    const config = {
-      headers: {
-        Authorization: `Bearer ${reqData.jwt}`,
-      },
-    };
-
-    const { data } = await api.get(`/api/orders/user`);
-    console.log("order history -------- ", data);
+    
+    console.log("Fetching order history...");
+    const { data } = await api.get('/api/orders/user');
+    
+    console.log("Order history full response:", data);
+    console.log("Number of orders:", data?.length || 0);
+    console.log("Order statuses:", data?.map(order => order.orderStatus));
+    
+    if (!data || data.length === 0) {
+      console.log("No orders found in the response");
+    }
+    
     dispatch({
       type: GET_ORDER_HISTORY_SUCCESS,
       payload: data,
     });
   } catch (error) {
+    console.error("Error fetching order history:", error);
+    console.error("Error response:", error.response);
+    console.error("Error message:", error.message);
     dispatch({
       type: GET_ORDER_HISTORY_FAILURE,
-      payload:
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message,
+      payload: error.response?.data?.message || error.message,
     });
   }
 };

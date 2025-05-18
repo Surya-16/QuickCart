@@ -42,6 +42,7 @@ const UpdateProductForm = () => {
     thirdLavelCategory: "",
     description: "",
   });
+  const [errors, setErrors] = useState({});
   const dispatch = useDispatch();
   const jwt = localStorage.getItem("jwt");
   const { productId } = useParams();
@@ -67,8 +68,36 @@ const UpdateProductForm = () => {
     }));
   };
 
+  const validate = () => {
+    const errors = {};
+    if (!productData.imageUrl) errors.imageUrl = 'Image URL is required';
+    else if (!/^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(productData.imageUrl)) errors.imageUrl = 'Invalid image URL';
+    if (!productData.brand) errors.brand = 'Brand is required';
+    if (!productData.title) errors.title = 'Title is required';
+    if (!productData.price) errors.price = 'Price is required';
+    else if (isNaN(productData.price) || Number(productData.price) <= 0) errors.price = 'Price must be a positive number';
+    if (!productData.discountedPrice) errors.discountedPrice = 'Discounted price is required';
+    else if (isNaN(productData.discountedPrice) || Number(productData.discountedPrice) < 0) errors.discountedPrice = 'Discounted price must be a non-negative number';
+    if (!productData.discountPersent) errors.discountPersent = 'Discount percent is required';
+    else if (isNaN(productData.discountPersent) || Number(productData.discountPersent) < 0) errors.discountPersent = 'Discount percent must be a non-negative number';
+    if (!productData.quantity) errors.quantity = 'Quantity is required';
+    else if (isNaN(productData.quantity) || Number(productData.quantity) < 0) errors.quantity = 'Quantity must be a non-negative number';
+    if (!productData.topLavelCategory) errors.topLavelCategory = 'Top level category is required';
+    if (!productData.secondLavelCategory) errors.secondLavelCategory = 'Second level category is required';
+    if (!productData.thirdLavelCategory) errors.thirdLavelCategory = 'Third level category is required';
+    if (!productData.description) errors.description = 'Description is required';
+    productData.size.forEach((size, idx) => {
+      if (!size.name) errors[`sizeName${idx}`] = 'Size name is required';
+      if (!size.quantity || isNaN(size.quantity) || Number(size.quantity) < 0) errors[`sizeQuantity${idx}`] = 'Size quantity must be a non-negative number';
+    });
+    return errors;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
     dispatch(updateProduct());
     console.log(productData);
   };
@@ -108,6 +137,8 @@ const UpdateProductForm = () => {
               name="imageUrl"
               value={productData.imageUrl}
               onChange={handleChange}
+              error={!!errors.imageUrl}
+              helperText={errors.imageUrl}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -117,6 +148,8 @@ const UpdateProductForm = () => {
               name="brand"
               value={productData.brand}
               onChange={handleChange}
+              error={!!errors.brand}
+              helperText={errors.brand}
             />
           </Grid>
 
@@ -127,6 +160,8 @@ const UpdateProductForm = () => {
               name="title"
               value={productData.title}
               onChange={handleChange}
+              error={!!errors.title}
+              helperText={errors.title}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -146,6 +181,8 @@ const UpdateProductForm = () => {
               value={productData.quantity}
               onChange={handleChange}
               type="number"
+              error={!!errors.quantity}
+              helperText={errors.quantity}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -156,6 +193,8 @@ const UpdateProductForm = () => {
               value={productData.price}
               onChange={handleChange}
               type="number"
+              error={!!errors.price}
+              helperText={errors.price}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -166,6 +205,8 @@ const UpdateProductForm = () => {
               value={productData.discountedPrice}
               onChange={handleChange}
               type="number"
+              error={!!errors.discountedPrice}
+              helperText={errors.discountedPrice}
             />
           </Grid>
 
@@ -177,10 +218,12 @@ const UpdateProductForm = () => {
               value={productData.discountPersent}
               onChange={handleChange}
               type="number"
+              error={!!errors.discountPersent}
+              helperText={errors.discountPersent}
             />
           </Grid>
           <Grid item xs={6} sm={4}>
-            <FormControl fullWidth>
+            <FormControl fullWidth error={!!errors.topLavelCategory}>
               <InputLabel>Top Level Category</InputLabel>
               <Select
                 name="topLavelCategory"
@@ -195,7 +238,7 @@ const UpdateProductForm = () => {
             </FormControl>
           </Grid>
           <Grid item xs={6} sm={4}>
-            <FormControl fullWidth>
+            <FormControl fullWidth error={!!errors.secondLavelCategory}>
               <InputLabel>Second Level Category</InputLabel>
               <Select
                 name="secondLavelCategory"
@@ -210,7 +253,7 @@ const UpdateProductForm = () => {
             </FormControl>
           </Grid>
           <Grid item xs={6} sm={4}>
-            <FormControl fullWidth>
+            <FormControl fullWidth error={!!errors.thirdLavelCategory}>
               <InputLabel>Third Level Category</InputLabel>
               <Select
                 name="thirdLavelCategory"
@@ -237,6 +280,8 @@ const UpdateProductForm = () => {
               rows={3}
               onChange={handleChange}
               value={productData.description}
+              error={!!errors.description}
+              helperText={errors.description}
             />
           </Grid>
           {/* {productData.size.map((size, index) => (
@@ -249,6 +294,8 @@ const UpdateProductForm = () => {
                   onChange={(event) => handleSizeChange(event, index)}
                   required
                   fullWidth
+                  error={!!errors[`sizeName${index}`]}
+                  helperText={errors[`sizeName${index}`]}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -259,6 +306,8 @@ const UpdateProductForm = () => {
                   onChange={(event) => handleSizeChange(event, index)}
                   required
                   fullWidth
+                  error={!!errors[`sizeQuantity${index}`]}
+                  helperText={errors[`sizeQuantity${index}`]}
                 />
               </Grid>{" "}
             </Grid>

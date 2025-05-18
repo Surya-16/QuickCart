@@ -1,6 +1,5 @@
 import {
   Button,
-  Divider,
   Grid,
   Rating,
   TextField,
@@ -13,11 +12,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { createReview } from "../../../Redux/Customers/Review/Action";
 import { useNavigate, useParams } from "react-router-dom";
 import { findProductById } from "../../../Redux/Customers/Product/Action";
-import CustomerRoutes from "../../../Routers/CustomerRoutes";
 
 const RateProduct = () => {
   const [formData, setFormData] = useState({ title: "", description: "" });
   const [rating, setRating] = useState();
+  const [errors, setErrors] = useState({});
   const isLargeScreen = useMediaQuery("(min-width:1200px)");
   const dispatch = useDispatch();
   const { customersProduct } = useSelector((store) => store);
@@ -36,20 +35,26 @@ const RateProduct = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const validate = () => {
+    const errors = {};
+    if (!formData.title) errors.title = 'Title is required';
+    if (!formData.description) errors.description = 'Description is required';
+    if (!rating) errors.rating = 'Rating is required';
+    return errors;
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
-
-    console.log(formData);
-    // You can customize this handler to handle the form data as needed
-
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
     dispatch(createReview({review:formData.title,productId}))
     setFormData({title:"",description:""})
     navigate(`/product/${productId}`)
-
   };
   useEffect(() => {
     dispatch(findProductById({ productId }));
-  }, []);
+  }, [dispatch, productId]);
   return (
     <div className="px-5 lg:px-20">
       <h1 className="text-xl p-5 shadow-lg mb-8 font-bold">
@@ -123,6 +128,8 @@ const RateProduct = () => {
                 value={formData.title}
                 onChange={handleChange}
                 name="title"
+                error={!!errors.title}
+                helperText={errors.title}
               />
               <TextField
                 label="Description"
@@ -134,7 +141,10 @@ const RateProduct = () => {
                 value={formData.description}
                 onChange={handleChange}
                 name="description"
+                error={!!errors.description}
+                helperText={errors.description}
               />
+              <div style={{color: 'red', fontSize: '0.8rem'}}>{errors.rating}</div>
               <Button type="submit" variant="contained" color="primary">
                 Submit Review
               </Button>

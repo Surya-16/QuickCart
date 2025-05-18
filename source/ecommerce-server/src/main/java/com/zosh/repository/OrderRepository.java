@@ -7,10 +7,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.zosh.modal.Order;
+import com.zosh.user.domain.OrderStatus;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-	@Query("SELECT o FROM Order o WHERE o.user.id = :userId AND (o.orderStatus = PLACED OR o.orderStatus = CONFIRMED OR o.orderStatus = SHIPPED OR o.orderStatus = DELIVERED)")
+	@Query("SELECT o FROM Order o WHERE o.user.id = :userId AND o.orderStatus IN (com.zosh.user.domain.OrderStatus.PENDING, com.zosh.user.domain.OrderStatus.PLACED, com.zosh.user.domain.OrderStatus.CONFIRMED, com.zosh.user.domain.OrderStatus.SHIPPED, com.zosh.user.domain.OrderStatus.DELIVERED)")
 	public List<Order> getUsersOrders(@Param("userId") Long userId);
 	
 	List<Order> findAllByOrderByCreatedAtDesc();

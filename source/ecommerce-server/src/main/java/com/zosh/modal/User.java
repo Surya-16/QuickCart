@@ -10,6 +10,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 @Data
 @Entity
@@ -21,19 +23,24 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "First name is required")
     @Column(name = "first_name")
     private String firstName;
     
+    @NotBlank(message = "Last name is required")
     @Column(name = "last_name")
     private String lastName;
 
+    @NotBlank(message = "Password is required")
     @Column(name = "password")
     private String password;
 
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
     @Column(name = "email")
     private String email;
 
-//    @Enumerated(EnumType.STRING)
+    @NotBlank(message = "Role is required")
     private String role;
     
     private String mobile;
@@ -53,5 +60,12 @@ public class User {
     
     private LocalDateTime createdAt;
 
-    
+    // Explicit getter and setter for email to ensure proper method generation
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 }

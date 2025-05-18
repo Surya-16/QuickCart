@@ -6,15 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.bind.annotation.*;
 
 import com.zosh.exception.OrderException;
 import com.zosh.exception.UserException;
@@ -26,13 +18,9 @@ import com.zosh.response.PaymentLinkResponse;
 import com.zosh.service.OrderService;
 import com.zosh.service.UserService;
 import com.zosh.user.domain.OrderStatus;
+import com.zosh.user.domain.PaymentMethod;
 import com.zosh.user.domain.PaymentStatus;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.razorpay.Payment;
-import com.razorpay.PaymentLink;
-import com.razorpay.RazorpayClient;
-import com.razorpay.RazorpayException;
+import com.razorpay.*;
 
 @RestController
 @RequestMapping("/api")
@@ -50,75 +38,48 @@ public class PaymentController {
 	private UserService userService;
 	private OrderRepository orderRepository;
 	
-	public PaymentController(OrderService orderService,UserService userService,OrderRepository orderRepository) {
-		this.orderService=orderService;
-		this.userService=userService;
-		this.orderRepository=orderRepository;
+	public PaymentController(OrderService orderService, UserService userService, OrderRepository orderRepository) {
+		this.orderService = orderService;
+		this.userService = userService;
+		this.orderRepository = orderRepository;
 	}
 	
 	@PostMapping("/payments/{orderId}")
 	public ResponseEntity<PaymentLinkResponse> createPaymentLink(@PathVariable Long orderId,
 			@RequestHeader("Authorization") String jwt) 
-					throws RazorpayException, UserException, OrderException{
+					throws RazorpayException, UserException, OrderException {
 		
 		Order order = orderService.findOrderById(orderId);
 		try {
-			// Initialize Razorpay without logging sensitive information
-			logger.info("Initializing Razorpay payment for order: {}", orderId);
-			
 			RazorpayClient razorpay = new RazorpayClient(apiKey, apiSecret);
 			
-			// Create payment request
 			JSONObject paymentLinkRequest = new JSONObject();
-			paymentLinkRequest.put("amount", order.getTotalPrice() * 100); // Fix: amount should be in paise (100 paise = 1 INR)
+			paymentLinkRequest.put("amount", order.getTotalPrice() * 100);
 			paymentLinkRequest.put("currency", "INR");
 			
-			// Log the request payload without sensitive data
-			logger.info("Creating payment request for order: {}", orderId);				
-			
-			// Create customer details
 			JSONObject customer = new JSONObject();
 			customer.put("name", order.getUser().getFirstName() + " " + order.getUser().getLastName());
 			customer.put("contact", order.getUser().getMobile());
-			customer.put("email", "suryavs16@gmail.com"); // Uncommented as this is required by Razorpay
+			customer.put("email", order.getUser().getEmail());
 			paymentLinkRequest.put("customer", customer);
 			
-			// Set notification settings
 			JSONObject notify = new JSONObject();
 			notify.put("sms", true);
 			notify.put("email", true);
 			paymentLinkRequest.put("notify", notify);
 			
-			// Set callback details
 			paymentLinkRequest.put("callback_url", "http://localhost:3000/payment-success?order_id=" + orderId);
 			paymentLinkRequest.put("callback_method", "get");
 			
-			try {
-				// Create payment link
-				PaymentLink payment = razorpay.paymentLink.create(paymentLinkRequest);
-				
-				// Log the successful response
-				logger.info("Payment link created successfully for order: {}", orderId);
-				String paymentLinkId = payment.get("id");
-				String paymentLinkUrl = payment.get("short_url");
-				
-				PaymentLinkResponse res = new PaymentLinkResponse(paymentLinkUrl, paymentLinkId);
-				
-				// Fetch and update order
-				PaymentLink fetchedPayment = razorpay.paymentLink.fetch(paymentLinkId);
-				order.setOrderId(fetchedPayment.get("order_id"));
-				orderRepository.save(order);
-				
-				logger.info("Order {} updated with payment link ID: {}", orderId, paymentLinkId);
-				
-				return new ResponseEntity<PaymentLinkResponse>(res, HttpStatus.ACCEPTED);
-				
-			} catch (RazorpayException e) {
-				// Log the error details without using undefined method
-				logger.error("Razorpay Error: {}", e.getMessage());
-				//logger.error("Full error details", e);
-				throw e;
-			}
+			PaymentLink payment = razorpay.paymentLink.create(paymentLinkRequest);
+			String paymentLinkId = payment.get("id");
+			String paymentLinkUrl = payment.get("short_url");
+			
+			order.getPaymentDetails().setRazorpayPaymentLinkId(paymentLinkId);
+			orderRepository.save(order);
+			
+			PaymentLinkResponse res = new PaymentLinkResponse(paymentLinkUrl, paymentLinkId);
+			return new ResponseEntity<PaymentLinkResponse>(res, HttpStatus.ACCEPTED);
 			
 		} catch (Exception e) {
 			throw e;
@@ -127,24 +88,39 @@ public class PaymentController {
 	
 	@GetMapping("/payments")
 	public ResponseEntity<ApiResponse> redirect(@RequestParam(name = "payment_id") String paymentId,
-			@RequestParam("order_id") Long orderId) throws RazorpayException, OrderException {
+			@RequestParam("order_id") Long orderId,
+			@RequestParam(name = "razorpay_payment_link_id", required = false) String razorpayPaymentLinkId,
+			@RequestParam(name = "razorpay_payment_link_reference_id", required = false) String razorpayPaymentLinkReferenceId,
+			@RequestParam(name = "razorpay_payment_link_status", required = false) String razorpayPaymentLinkStatus) 
+			throws RazorpayException, OrderException {
 		
-		logger.info("Payment callback received - Payment ID: {}, Order ID: {}", paymentId, orderId);
+		logger.info("Payment callback received - Payment ID: {} for Order ID: {}", paymentId, orderId);
 		
 		try {
 			RazorpayClient razorpay = new RazorpayClient(apiKey, apiSecret);
 			Payment payment = razorpay.payments.fetch(paymentId);
 			
-			logger.info("Payment status fetched - Status: {}", payment.get("status").toString());
+			logger.info("Payment status fetched - Status: {}", (String)payment.get("status"));
 			
 			if (payment.get("status").equals("captured")) {
 				Order order = orderService.findOrderById(orderId);
+				
+				// Update payment details
 				order.getPaymentDetails().setPaymentId(paymentId);
 				order.getPaymentDetails().setStatus(PaymentStatus.COMPLETED);
-				order.setOrderStatus(OrderStatus.PLACED);
+				order.getPaymentDetails().setPaymentMethod(PaymentMethod.RAZORPAY);
+				order.getPaymentDetails().setRazorpayPaymentId(paymentId);
+				order.getPaymentDetails().setRazorpayPaymentLinkId(razorpayPaymentLinkId);
+				order.getPaymentDetails().setRazorpayPaymentLinkReferenceId(razorpayPaymentLinkReferenceId);
+				order.getPaymentDetails().setRazorpayPaymentLinkStatus(razorpayPaymentLinkStatus);
 				
-				orderRepository.save(order);
-				logger.info("Order updated with payment success - Order ID: {}", orderId);
+				// Save the order with updated payment details first
+				order = orderRepository.save(order);
+				
+				// Then update order status to PLACED - this will also save the order
+				order = orderService.placedOrder(orderId);
+				
+				logger.info("Order {} updated with payment success and status PLACED", orderId);
 				
 				ApiResponse res = new ApiResponse("Your order has been placed", true);
 				return new ResponseEntity<ApiResponse>(res, HttpStatus.OK);
@@ -152,7 +128,7 @@ public class PaymentController {
 			
 			logger.warn("Payment not captured - Payment ID: {}, Status: {}", 
 				paymentId, 
-				payment.get("status")
+				(String)payment.get("status")
 			);
 			
 			throw new RazorpayException("Payment failed");

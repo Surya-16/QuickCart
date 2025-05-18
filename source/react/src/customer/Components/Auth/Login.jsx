@@ -13,6 +13,7 @@ export default function LoginUserForm({ handleNext }) {
   const [openSnackBar,setOpenSnackBar]=useState(false);
   const { auth } = useSelector((store) => store);
   const handleCloseSnakbar=()=>setOpenSnackBar(false);
+  const [errors, setErrors] = useState({});
   useEffect(()=>{
     if(jwt){
       dispatch(getUser(jwt))
@@ -22,25 +23,47 @@ export default function LoginUserForm({ handleNext }) {
   
   
     useEffect(() => {
-      if (auth.user || auth.error) setOpenSnackBar(true)
-    }, [auth.user]);
+      if (auth.user || auth.error) setOpenSnackBar(true);
+    }, [auth.user, auth.error]);
+  const validate = (userData) => {
+    const errors = {};
+    if (!userData.email) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
+      errors.email = 'Invalid email format';
+    }
+    if (!userData.password) {
+      errors.password = 'Password is required';
+    } else if (userData.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
+    return errors;
+  };
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    
     const userData={
       email: data.get("email"),
       password: data.get("password"),
-     
     }
-    console.log("login user",userData);
-  
+    const validationErrors = validate(userData);
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
     dispatch(login(userData));
+  };
 
+  // Helper to get a string error message from any error type
+  const getErrorMessage = (error) => {
+    if (!error) return '';
+    if (typeof error === 'string') return error;
+    if (typeof error === 'object') {
+      return error.error || error.message || JSON.stringify(error);
+    }
+    return String(error);
   };
 
   return (
-    <React.Fragment className=" shadow-lg ">
+    <div className="shadow-lg">
       <form className="w-full" onSubmit={handleSubmit}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
@@ -51,6 +74,8 @@ export default function LoginUserForm({ handleNext }) {
               label="Email"
               fullWidth
               autoComplete="given-name"
+              error={!!errors.email}
+              helperText={errors.email}
             />
           </Grid>
           <Grid item xs={12}>
@@ -62,6 +87,8 @@ export default function LoginUserForm({ handleNext }) {
               fullWidth
               autoComplete="given-name"
               type="password"
+              error={!!errors.password}
+              helperText={errors.password}
             />
           </Grid>
 
@@ -78,6 +105,11 @@ export default function LoginUserForm({ handleNext }) {
           </Grid>
         </Grid>
       </form>
+      {auth.error && (
+        <div style={{ color: 'red', marginTop: '1rem', textAlign: 'center' }}>
+          {getErrorMessage(auth.error)}
+        </div>
+      )}
       <div className="flex justify-center flex-col items-center">
          <div className="py-3 flex items-center">
         <p className="m-0 p-0">don't have account ?</p>
@@ -86,11 +118,24 @@ export default function LoginUserForm({ handleNext }) {
         </Button>
         </div>
       </div>
-      <Snackbar open={openSnackBar} autoHideDuration={6000} onClose={handleCloseSnakbar}>
-        <Alert onClose={handleCloseSnakbar} severity="success" sx={{ width: '100%' }}>
-          {auth.error?auth.error:auth.user?"Register Success":""}
+      <Snackbar
+        open={openSnackBar}
+        autoHideDuration={6000}
+        onClose={handleCloseSnakbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSnakbar}
+          severity={auth.error ? "error" : "success"}
+          sx={{ width: '100%' }}
+        >
+          {auth.error
+            ? getErrorMessage(auth.error)
+            : auth.user
+              ? "Login Success"
+              : ""}
         </Alert>
       </Snackbar>
-    </React.Fragment>
+    </div>
   );
 }

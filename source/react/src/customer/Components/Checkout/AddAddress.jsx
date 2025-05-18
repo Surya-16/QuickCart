@@ -13,14 +13,33 @@ export default function AddDeliveryAddressForm({ handleNext }) {
   const jwt = localStorage.getItem("jwt");
   const { auth } = useSelector((store) => store);
   const [selectedAddress, setSelectedAdress] = useState(null);
+  const [errors, setErrors] = useState({});
 
   // console.log("auth", auth);
+
+  const validate = (address) => {
+    const errors = {};
+    if (!address.firstName) errors.firstName = 'First name is required';
+    if (!address.lastName) errors.lastName = 'Last name is required';
+    if (!address.streetAddress) errors.address = 'Address is required';
+    if (!address.city) errors.city = 'City is required';
+    if (!address.state) errors.state = 'State is required';
+    if (!address.zipCode) {
+      errors.zip = 'Zip code is required';
+    } else if (!/^\d{5,6}$/.test(address.zipCode)) {
+      errors.zip = 'Zip code must be 5 or 6 digits';
+    }
+    if (!address.mobile) {
+      errors.phoneNumber = 'Phone number is required';
+    } else if (!/^\d{10}$/.test(address.mobile)) {
+      errors.phoneNumber = 'Phone number must be 10 digits';
+    }
+    return errors;
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    // eslint-disable-next-line no-console
-
     const address = {
       firstName: data.get("firstName"),
       lastName: data.get("lastName"),
@@ -30,9 +49,10 @@ export default function AddDeliveryAddressForm({ handleNext }) {
       zipCode: data.get("zip"),
       mobile: data.get("phoneNumber"),
     };
-
+    const validationErrors = validate(address);
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
     dispatch(createOrder({ address, jwt, navigate }));
-    // after perfoming all the opration
     handleNext();
   };
 
@@ -79,6 +99,8 @@ export default function AddDeliveryAddressForm({ handleNext }) {
                   label="First Name"
                   fullWidth
                   autoComplete="given-name"
+                  error={!!errors.firstName}
+                  helperText={errors.firstName}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -89,6 +111,8 @@ export default function AddDeliveryAddressForm({ handleNext }) {
                   label="Last Name"
                   fullWidth
                   autoComplete="given-name"
+                  error={!!errors.lastName}
+                  helperText={errors.lastName}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -101,6 +125,8 @@ export default function AddDeliveryAddressForm({ handleNext }) {
                   autoComplete="shipping address"
                   multiline
                   rows={4}
+                  error={!!errors.address}
+                  helperText={errors.address}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -111,6 +137,8 @@ export default function AddDeliveryAddressForm({ handleNext }) {
                   label="City"
                   fullWidth
                   autoComplete="shipping address-level2"
+                  error={!!errors.city}
+                  helperText={errors.city}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -120,6 +148,8 @@ export default function AddDeliveryAddressForm({ handleNext }) {
                   name="state"
                   label="State/Province/Region"
                   fullWidth
+                  error={!!errors.state}
+                  helperText={errors.state}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -130,6 +160,8 @@ export default function AddDeliveryAddressForm({ handleNext }) {
                   label="Zip / Postal code"
                   fullWidth
                   autoComplete="shipping postal-code"
+                  error={!!errors.zip}
+                  helperText={errors.zip}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -140,6 +172,8 @@ export default function AddDeliveryAddressForm({ handleNext }) {
                   label="Phone Number"
                   fullWidth
                   autoComplete="tel"
+                  error={!!errors.phoneNumber}
+                  helperText={errors.phoneNumber}
                 />
               </Grid>
               <Grid item xs={12}>

@@ -46,10 +46,17 @@ export const login = userData => async dispatch => {
     const response = await axios.post(`${API_BASE_URL}/auth/signin`, userData);
     const user = response.data;
     if(user.jwt) localStorage.setItem("jwt",user.jwt)
-    console.log("login ",user)
     dispatch(loginSuccess(user));
   } catch (error) {
-    dispatch(loginFailure(error.message));
+    let errorMsg = error.message;
+    if (error.response && error.response.data) {
+      if (typeof error.response.data === 'string') {
+        errorMsg = error.response.data;
+      } else if (typeof error.response.data === 'object') {
+        errorMsg = error.response.data.error || error.response.data.message || error.message;
+      }
+    }
+    dispatch(loginFailure(errorMsg));
   }
 };
 

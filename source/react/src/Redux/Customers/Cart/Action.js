@@ -58,11 +58,27 @@ export const getCart = (jwt) => async (dispatch) => {
         },
       };
     const { data } = await axios.get(`${API_BASE_URL}/api/cart/`,config);
-console.log("cart ",data)
+    
+    // Process images for preloading
+    if (data && data.cartItems && data.cartItems.length > 0) {
+      data.cartItems.forEach(item => {
+        if (item.product && item.product.imageUrl) {
+          // Create dummy image element to start loading the image
+          const img = new Image();
+          img.src = item.product.imageUrl;
+        }
+      });
+    }
+
+    // Small timeout to allow images to begin loading
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     dispatch({
       type: GET_CART_SUCCESS,
       payload: data,
     });
+    
+    return data; // Return data for promise chaining
   } catch (error) {
     dispatch({
       type: GET_CART_FAILURE,
@@ -71,6 +87,7 @@ console.log("cart ",data)
           ? error.response.data.message
           : error.message,
     });
+    throw error; // Rethrow for error handling in component
   }
 };
 

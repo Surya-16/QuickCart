@@ -1,5 +1,5 @@
-
 import axios from 'axios';
+
 const DEPLOYED='https://e-commerce-server-production-0873.up.railway.app'
 const LOCALHOST='http://localhost:5454'
 
@@ -9,10 +9,30 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
-const token = localStorage.getItem('jwt');
+// Request interceptor
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('jwt');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
-api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-api.defaults.headers.post['Content-Type'] = 'application/json';
+// Response interceptor
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('jwt');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

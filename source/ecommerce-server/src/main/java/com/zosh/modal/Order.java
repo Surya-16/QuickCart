@@ -1,7 +1,5 @@
 package com.zosh.modal;
 
-
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.zosh.user.domain.OrderStatus;
 
@@ -9,6 +7,8 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -62,6 +62,7 @@ public class Order {
     
     private Integer discount;
 
+    @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
     
     private int totalItem;
