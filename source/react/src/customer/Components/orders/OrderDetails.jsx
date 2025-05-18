@@ -40,13 +40,17 @@ const OrderDetails = () => {
           <Grid item xs={9}>
             <OrderTraker
               activeStep={
-                order.order?.orderStatus === "PLACED"
+                order.order?.orderStatus === "PENDING"
+                  ? 0
+                  : order.order?.orderStatus === "PLACED"
                   ? 1
                   : order.order?.orderStatus === "CONFIRMED"
                   ? 2
                   : order.order?.orderStatus === "SHIPPED"
                   ? 3
-                  : 5
+                  : order.order?.orderStatus === "DELIVERED"
+                  ? 4
+                  : 0
               }
             />
           </Grid>

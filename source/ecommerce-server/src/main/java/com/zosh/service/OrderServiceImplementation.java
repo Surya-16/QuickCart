@@ -101,10 +101,27 @@ public class OrderServiceImplementation implements OrderService {
 
 	@Override
 	public Order placedOrder(Long orderId) throws OrderException {
+		// First check if the order exists
 		Order order = findOrderById(orderId);
-		order.setOrderStatus(OrderStatus.PLACED);
-		order.getPaymentDetails().setStatus(PaymentStatus.COMPLETED);
-		return orderRepository.save(order);
+		
+		// If order is already in PLACED status, don't try to update
+		if (order.getOrderStatus() == OrderStatus.PLACED) {
+			return order;
+		}
+		
+		try {
+			// Try to use direct SQL update to avoid constraint issues
+			int updated = orderRepository.updateOrderStatusToPlaced(orderId);
+			
+			if (updated > 0) {
+				// Refresh order from database
+				return findOrderById(orderId);
+			} else {
+				throw new OrderException("Failed to update order status to PLACED");
+			}
+		} catch (Exception e) {
+			throw new OrderException("Error placing order: " + e.getMessage());
+		}
 	}
 
 	@Override

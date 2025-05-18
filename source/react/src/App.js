@@ -8,6 +8,7 @@ import AdminPannel from "./Admin/AdminPannel";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { getUser } from "./Redux/Auth/Action";
+import ScrollToTop from "./ScrollToTop";
 // import Routers from './Routers/Routers';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
   }, [jwt]);
   return (
     <div className="">
+      <ScrollToTop />
       <Routes>
         <Route path="/*" element={<CustomerRoutes />} />
        {auth.user?.role==="ROLE_ADMIN" && <Route path="/admin/*" element={<AdminPannel />} />}

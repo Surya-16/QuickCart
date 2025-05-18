@@ -7,39 +7,60 @@ import StarIcon from "@mui/icons-material/Star";
 import { getOrderById } from "../../../Redux/Customers/Order/Action";
 import OrderTraker from "../orders/OrderTraker";
 import AddressCard from "../adreess/AdreessCard";
-import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { clearCart } from "../../../Redux/Customers/Cart/Action";
 
 const PaymentSuccess = () => {
-  // razorpay_payment_link_reference_id
-  // razorpay_payment_id
   const [paymentId, setPaymentId] = useState("");
   const [referenceId, setReferenceId] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("");
-  const {orderId}=useParams();
-
-  
+  const [orderId, setOrderId] = useState("");
+  const [cartCleared, setCartCleared] = useState(false);
+  const location = useLocation();
 
   const jwt = localStorage.getItem("jwt");
   const dispatch = useDispatch();
   const { order } = useSelector((store) => store);
 
   useEffect(() => {
-    console.log("orderId",orderId)
     const urlParams = new URLSearchParams(window.location.search);
+    const orderIdParam = urlParams.get("order_id");
+    
+    console.log("Extracted order_id from URL:", orderIdParam);
+    
+    setOrderId(orderIdParam);
     setPaymentId(urlParams.get("razorpay_payment_id"));
     setReferenceId(urlParams.get("razorpay_payment_link_reference_id"));
     setPaymentStatus(urlParams.get("razorpay_payment_link_status"));
-  }, []);
+  }, [location.search]);
 
   useEffect(() => {
-    if (paymentId && paymentStatus === "paid") {
+    if (paymentId && orderId) {
+      // Always process payment if we have paymentId and orderId
+      console.log("Processing payment for order:", orderId);
+      
       const data = { orderId, paymentId, jwt };
       dispatch(updatePayment(data));
       dispatch(getOrderById(orderId));
-      dispatch(clearCart(jwt));
+      
+      // Ensure cart clearing happens only once
+      if (!cartCleared) {
+        console.log("Clearing cart...");
+        dispatch(clearCart(jwt));
+        setCartCleared(true);
+      }
     }
-  }, [orderId, paymentId]);
+  }, [orderId, paymentId, dispatch, jwt, cartCleared]);
+
+  // Add a separate effect to handle direct page loads or refreshes
+  useEffect(() => {
+    // If page is loaded directly with order information, ensure cart is cleared
+    if (order.order && !cartCleared) {
+      console.log("Order loaded, clearing cart");
+      dispatch(clearCart(jwt));
+      setCartCleared(true);
+    }
+  }, [order.order, dispatch, jwt, cartCleared]);
 
   return (
     <div className="px-2 lg:px-36">
@@ -63,7 +84,7 @@ const PaymentSuccess = () => {
             item
             className="shadow-xl rounded-md p-5 border"
             sx={{ alignItems: "center", justifyContent: "space-between" }}
-            key={item.product._id}
+            key={item.id || `${item.product?._id}-${item.size}`}
           >
             <Grid item xs={6}>
               {" "}

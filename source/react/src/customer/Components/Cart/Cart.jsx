@@ -36,7 +36,7 @@ const Cart = () => {
   useEffect(() => {
     if (cart.cartItems && cart.cartItems.length > 0) {
       cart.cartItems.forEach(item => {
-        if (item?.product?.imageUrl) {
+        if (item && item.product && item.product.imageUrl) {
           const img = new Image();
           img.src = item.product.imageUrl;
         }
@@ -58,7 +58,7 @@ const Cart = () => {
         <div className="lg:grid grid-cols-3 lg:px-16 relative">
           <div className="lg:col-span-2 lg:px-5 bg-white">
             <div className="space-y-3">
-              {cart.cartItems.map((item) => (
+              {cart.cartItems.filter(item => item && item.id).map((item) => (
                 <React.Fragment key={item.id}>
                   <CartItem item={item} showButton={true} />
                 </React.Fragment>

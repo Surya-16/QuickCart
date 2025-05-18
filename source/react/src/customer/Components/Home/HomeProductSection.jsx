@@ -12,6 +12,22 @@ const HomeProductSection = ({ section, data }) => {
   const slideNext = () => setActiveIndex(activeIndex + 1);
   const syncActiveIndex = ({ item }) => setActiveIndex(item);
 
+  // Map section names to their respective route paths
+  const getSectionPath = (sectionName) => {
+    const sectionMap = {
+      "Men's Kurta": "/men/clothing/mens_kurta",
+      "Men's Shoes": "/men/footwear/mens_shoes",
+      "Lengha Choli": "/women/clothing/lengha_choli",
+      "Saree": "/women/clothing/saree",
+      "Dress": "/women/clothing/dress",
+      "Women's Gouns": "/women/clothing/gown",
+      "Women's Kurtas": "/women/clothing/women_kurta",
+      "Men's Pants": "/men/clothing/mens_pants"
+    };
+    
+    return sectionMap[sectionName] || "/men/clothing/mens_kurta";
+  };
+
   const responsive = {
     0: {
       items: 2,
@@ -29,7 +45,7 @@ const HomeProductSection = ({ section, data }) => {
   const items = data?.slice(0, 10).map((item) => (
     <div className="">
       {" "}
-      <HomeProductCard product={item} />
+      <HomeProductCard product={{...item, sectionPath: getSectionPath(section)}} />
     </div>
   ));
 

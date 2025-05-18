@@ -49,13 +49,13 @@ export const createOrder = (reqData) => async (dispatch) => {
   }
 };
 
-export const getOrderById = (orderId) => async (dispatch) => {
-  console.log("get order req ", orderId);
+export const getOrderById = (order_id) => async (dispatch) => {
+  console.log("get order req ", order_id);
   try {
     dispatch({ type: GET_ORDER_BY_ID_REQUEST });
 
     const { data } = await api.get(
-      `/api/orders/${orderId}`,
+      `/api/orders/${order_id}`,
       
     );
     console.log("order by id ", data);
