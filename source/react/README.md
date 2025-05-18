@@ -39,7 +39,7 @@ A full-stack eCommerce application built with React and Spring Boot And Node Js.
 
 ## Demo
 
-[shopwithzosh](https://shopwithzosh.vercel.app/)
+[QuickCart](https://quickcart.vercel.app/)
 
 ## Technologies Used
 
@@ -61,7 +61,7 @@ A full-stack eCommerce application built with React and Spring Boot And Node Js.
 
 1. Clone Frontend repository: `git clone https://github.com/ashok0001/e-commerce-server.git`
 2. Clone Backend Repository: `git clone https://github.com/ashok0001/e-commerce-server.git`
-3. Change directory Frontend:`cd shopwithzosh`
+3. Change directory Frontend:`cd quickcart`
 4. Change directory Backend: `cd e-commerce-server`
 5. Install frontend dependencies: `npm install`
 6. Install backend dependencies
@@ -93,7 +93,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 If you have any questions or suggestions, feel free to contact me:
 
 - Ashok Zarmariya
-- ashokzarmariya47@gmail.com
+- support@quickcart.com
 - [Linkedin](https://www.linkedin.com/in/ashok-zarmariya-473aa722a/)
 
 Feel free to customize the README to include more specific information about your project. Good luck with your eCommerce full-stack application!

@@ -1,12 +1,13 @@
 package com.zosh.service;
 
-import com.zosh.modal.User;
-import com.zosh.repository.UserRepository;
-import com.zosh.user.domain.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import com.zosh.modal.User;
+import com.zosh.repository.UserRepository;
+import com.zosh.user.domain.UserRole;
 
 @Component
 public class DataInitializationComponent implements CommandLineRunner {
@@ -31,14 +32,14 @@ public class DataInitializationComponent implements CommandLineRunner {
     }
 
     private void initializeAdminUser() {
-        String adminUsername = "codewithzosh@gmail.com";
+        String adminUsername = "admin@quickcart.com";
 
         if (userRepository.findByEmail(adminUsername)==null) {
             User adminUser = new User();
 
-            adminUser.setPassword(passwordEncoder.encode("codewithzosh"));
-            adminUser.setFirstName("zosh");
-            adminUser.setLastName("code");
+            adminUser.setPassword(passwordEncoder.encode("admin"));
+            adminUser.setFirstName("Surya");
+            adminUser.setLastName("S");
             adminUser.setEmail(adminUsername);
             adminUser.setRole(UserRole.ROLE_ADMIN.toString());
 

@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "22413616-5ee4-4ce6-b52f-ecbe74ab24ef",
-		"name": "Ecommerce Api",
+		"name": "QuickCart API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "25460319"
 	},

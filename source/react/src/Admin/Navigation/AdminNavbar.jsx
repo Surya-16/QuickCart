@@ -173,7 +173,21 @@ export default function AdminNavbar({handleSideBarViewInMobile}) {
           >
             <MenuIcon />
           </IconButton>}
-          <Avatar alt="Zosh" src="https://res.cloudinary.com/ddkso1wxi/image/upload/v1675919455/Logo/Copy_of_Zosh_Academy_nblljp.png" />
+          <IconButton
+            component="span"
+            onClick={handleSideBarViewInMobile}
+            color="inherit"
+            aria-label="open drawer"
+            sx={{ ml: 0, opacity: [0.9, 0.8, 0.2] }}
+          >
+            <Avatar alt="QuickCart Logo" src="https://res.cloudinary.com/ddkso1wxi/image/upload/v1675919455/Logo/Copy_of_Zosh_Academy_nblljp.png" />
+          </IconButton>
+          <Typography
+            component="h6"
+            variant="h6"
+          >
+            QuickCart Admin
+          </Typography>
           <Search>
             <SearchIconWrapper>
               <SearchIcon />

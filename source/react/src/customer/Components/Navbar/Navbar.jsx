@@ -15,16 +15,18 @@ function Navbar() {
         <div className="mx-auto px-4">
           <div className="flex justify-between items-center">
             {/* Logo */}
-            <Link to="/" className="flex items-center py-6">
-              <img
-                src="https://res.cloudinary.com/ddkso1wxi/image/upload/v1675919455/Logo/Copy_of_Zosh_Academy_nblljp.png"
-                alt="Shopwithzosh"
-                className="h-8 w-8 mr-2"
-              />
-              <span className="font-bold text-white text-lg">
-                Shop With Zosh
-              </span>
-            </Link>
+            <div className="bg-white py-4">
+              <div className="container mx-auto flex items-center justify-between">
+                <div className="lg:mr-0 cursor-pointer" onClick={() => navigate("/")}>
+                  <img
+                    className="h-10"
+                    src="https://res.cloudinary.com/ddkso1wxi/image/upload/v1675919455/Logo/Copy_of_Zosh_Academy_nblljp.png"
+                    alt="QuickCart Logo"
+                  />
+                  <h1 className='font-bold text-2xl text-gray-700'>QuickCart</h1>
+                </div>
+              </div>
+            </div>
 
             {/* Navigation menu */}
             <ul className="hidden md:flex items-center space-x-4">
