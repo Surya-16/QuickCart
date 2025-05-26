@@ -14,6 +14,8 @@ export default function LoginUserForm({ handleNext }) {
   const { auth } = useSelector((store) => store);
   const handleCloseSnakbar=()=>setOpenSnackBar(false);
   const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  
   useEffect(()=>{
     if(jwt){
       dispatch(getUser(jwt))
@@ -22,30 +24,60 @@ export default function LoginUserForm({ handleNext }) {
   },[jwt])
   
   
-    useEffect(() => {
-      if (auth.user || auth.error) setOpenSnackBar(true);
-    }, [auth.user, auth.error]);
+  useEffect(() => {
+    if (auth.user || auth.error) {
+      setOpenSnackBar(true);
+      
+      // Auto-redirect to home page after successful login
+      if (auth.user && !auth.error) {
+        setTimeout(() => {
+          navigate("/");
+        }, 2000); // Redirect after 2 seconds to show success message
+      }
+    }
+  }, [auth.user, auth.error, navigate]);
+    
   const validate = (userData) => {
     const errors = {};
+    
+    // Email validation
     if (!userData.email) {
       errors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
-      errors.email = 'Invalid email format';
+    } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(userData.email)) {
+      errors.email = 'Please enter a valid email address';
+    } else if (userData.email.length > 254) {
+      errors.email = 'Email address is too long';
     }
+    
+    // Password validation
     if (!userData.password) {
       errors.password = 'Password is required';
     } else if (userData.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
+      errors.password = 'Password must be at least 6 characters long';
+    } else if (userData.password.length > 128) {
+      errors.password = 'Password is too long (maximum 128 characters)';
+    } else if (/^\s+|\s+$/.test(userData.password)) {
+      errors.password = 'Password cannot start or end with spaces';
     }
+    
     return errors;
   };
+  
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
+  
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const userData={
-      email: data.get("email"),
+      email: data.get("email")?.trim(),
       password: data.get("password"),
     }
+    
+    // Mark all fields as touched
+    setTouched({ email: true, password: true });
+    
     const validationErrors = validate(userData);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
@@ -73,9 +105,12 @@ export default function LoginUserForm({ handleNext }) {
               name="email"
               label="Email"
               fullWidth
-              autoComplete="given-name"
-              error={!!errors.email}
-              helperText={errors.email}
+              autoComplete="email"
+              type="email"
+              onBlur={() => handleBlur('email')}
+              error={!!(touched.email && errors.email)}
+              helperText={touched.email && errors.email}
+              placeholder="Enter your email address"
             />
           </Grid>
           <Grid item xs={12}>
@@ -85,10 +120,12 @@ export default function LoginUserForm({ handleNext }) {
               name="password"
               label="Password"
               fullWidth
-              autoComplete="given-name"
+              autoComplete="current-password"
               type="password"
-              error={!!errors.password}
-              helperText={errors.password}
+              onBlur={() => handleBlur('password')}
+              error={!!(touched.password && errors.password)}
+              helperText={touched.password && errors.password}
+              placeholder="Enter your password"
             />
           </Grid>
 
@@ -99,8 +136,9 @@ export default function LoginUserForm({ handleNext }) {
               variant="contained"
               size="large"
               sx={{padding:".8rem 0"}}
+              disabled={auth.loading}
             >
-              Login
+              {auth.loading ? 'Logging in...' : 'Login'}
             </Button>
           </Grid>
         </Grid>
@@ -120,7 +158,7 @@ export default function LoginUserForm({ handleNext }) {
       </div>
       <Snackbar
         open={openSnackBar}
-        autoHideDuration={6000}
+        autoHideDuration={auth.user && !auth.error ? 3000 : 6000}
         onClose={handleCloseSnakbar}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
@@ -128,11 +166,12 @@ export default function LoginUserForm({ handleNext }) {
           onClose={handleCloseSnakbar}
           severity={auth.error ? "error" : "success"}
           sx={{ width: '100%' }}
+          variant="filled"
         >
           {auth.error
             ? getErrorMessage(auth.error)
             : auth.user
-              ? "Login Success"
+              ? `Welcome back, ${auth.user.firstName || 'User'}! Login successful. Redirecting...`
               : ""}
         </Alert>
       </Snackbar>
