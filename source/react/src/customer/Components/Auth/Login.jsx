@@ -52,7 +52,7 @@ export default function LoginUserForm({ handleNext }) {
     // Password validation
     if (!userData.password) {
       errors.password = 'Password is required';
-    } else if (userData.password.length < 6) {
+    } else if (userData.password.length < 4) {
       errors.password = 'Password must be at least 6 characters long';
     } else if (userData.password.length > 128) {
       errors.password = 'Password is too long (maximum 128 characters)';
